@@ -78,3 +78,21 @@ plt.title(f"Predicted: {predicted_class}.\n Confidence: {confidence}%")
 plt.imshow(input_arr[0])  # Display the normalized image
 plt.axis("off")
 plt.show()
+
+
+model.summary()
+
+# Get the list of layers in the model
+layers_list = model.layers
+
+# Iterate through each layer and display the number of weights
+for layer in layers_list:
+    print(f"Layer: {layer.name}")
+    weights = layer.get_weights()
+    if weights:
+        print(f"Number of weights: {len(weights)}")
+        for i, weight_array in enumerate(weights):
+            print(f"  Weight {i + 1} shape: {weight_array.shape}")
+    else:
+        print("No weights in this layer")
+    print("\n")
