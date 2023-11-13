@@ -11,10 +11,15 @@ dataset = tf.keras.utils.image_dataset_from_directory(
     directory  = "./images_jpg", 
     color_mode = 'rgb',     
     batch_size = 32,
-    image_size = (100, 250),  
+    image_size = (100, 200),  
     seed       = 1337,
 )
-
+class_names = dataset.class_names
+class_names
+sample_batch = dataset.take(1)
+for image_batch, label_batch in sample_batch:
+    print(image_batch.shape)
+    print(label_batch.numpy())
 # Podział na dane treningowe i testowe
 train_size = int(0.8 * len(dataset))
 test_size = int(0.2 * len(dataset))
@@ -57,7 +62,7 @@ class_names
 
 
 # Load the image
-image_path = "test_images/brzoza_test.jpg"
+image_path = "test_images\Brzoza_test.jpg"
 image = tf.keras.utils.load_img(image_path)
 
 # Resize the image to match the model's expected input shape
@@ -71,14 +76,13 @@ input_arr = np.array([input_arr])  # Convert single image to a batch.
 # Make predictions
 predictions = model.predict(input_arr) 
 predicted_class = class_names[np.argmax(predictions)]
-confidence = round(100 * (np.max(tf.nn.softmax(prediction_batch[i]))), 2)
+confidence = round(100 * (np.max(tf.nn.softmax(predictions))), 2)
 
 # Display the results
 plt.title(f"Predicted: {predicted_class}.\n Confidence: {confidence}%")
 plt.imshow(input_arr[0])  # Display the normalized image
 plt.axis("off")
 plt.show()
-
 
 model.summary()
 
@@ -96,3 +100,30 @@ for layer in layers_list:
     else:
         print("No weights in this layer")
     print("\n")
+
+    plt.figure(figsize=(20, 20))
+
+# take a batch from 'test_ds'
+for image_batch, label_batch in test_dataset.take(1):
+    
+    # returns array of confidences for different classes of all images in the batch
+    prediction_batch = model.predict(image_batch)
+
+    size = len(image_batch)
+    columns = 4
+    rows = size//columns
+    
+    for i in range(size):
+        
+        image = image_batch[i].numpy().astype("uint8")   # converting float to int
+        
+        actual_class    = class_names[label_batch[i]]
+        predicted_class = class_names[np.argmax(prediction_batch[i])]
+        confidence      = round(100 * (np.max(prediction_batch[i])), 2)
+        
+        ax = plt.subplot(rows, columns, i + 1)   # row, col, idx
+
+        title = plt.title(f"Actual: {actual_class},\n Predicted: {predicted_class}.\n Confidence: {confidence}%")
+        plt.setp(title, color= 'g' if actual_class == predicted_class else 'r')
+        plt.imshow(image)
+        plt.axis("off")
