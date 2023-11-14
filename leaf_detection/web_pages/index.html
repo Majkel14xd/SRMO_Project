@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>System rozpoznawania liści drzew</title>
+    {% load static %}
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href=" {% static 'index/index.css' %} "
+    />
+    <script src="{% static 'index/index.js' %}"></script>
+  </head>
+  <body>
+    <div id="main">
+        <h1>Witaj na stronie rozpoznawania lisci</h1>
+    <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>Wgraj z pliku zdjęciowego</p>
+    <input type="file" name="document">
+    <button type="submit">Wyslij</button>
+     <p>Zrob zdjęcie</p>
+     <input type="file" accept="image/*" capture="camera" name="image">
+</form>
+</div>
+    <footer><p>Copyright Michał Lidwa, Michał Kurpa, Robert Kaleta 2023/2024</p></footer>
+  </body>
+</html>
