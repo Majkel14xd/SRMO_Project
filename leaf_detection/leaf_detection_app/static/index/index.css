@@ -1,0 +1,18 @@
+ body {
+display: flex;
+flex-direction: column;
+min-height: 100vh; 
+background-image: url("liscie.gif");
+background-size: cover;
+background-repeat: no-repeat;
+background-attachment: fixed; 
+}
+#main {
+ flex: 1;
+ text-align: center;
+ float: center;
+}
+ footer {
+background-color:transparent;
+text-align: center;
+}
