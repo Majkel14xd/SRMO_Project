@@ -1,2 +1,5 @@
 images_jpg/
 leaf_detection/images_tmp/
+leaf_detection/leaf_detection_app/models/leaf_classifier.h5
+leaf_classifier.h5
+
