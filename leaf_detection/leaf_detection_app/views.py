@@ -1,62 +1,46 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from PIL import Image
-from io import BytesIO
-import cv2
-import tensorflow as tf
-import numpy as np
+import os
 import base64
-import h5py
-import json
-# Create your views here.
+import numpy as np
+from django.shortcuts import render
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from torchvision import transforms
+from PIL import Image
+from torchvision import models
+import torch
+from django.conf import settings
+import cv2
+
 def index(request):
-      if request.method == 'POST' and request.FILES['image']:
-        # Get the uploaded image
+    if request.method == 'POST' and request.FILES['image']:
         uploaded_image = request.FILES['image']
-        image_path = default_storage.save('images_tmp/uploaded_image.jpg', ContentFile(uploaded_image.read()))
-        # Load the model
-        model_path = "leaf_detection_app/models/leaf_classifier.h5"
-        model = tf.keras.models.load_model(model_path)
+        subdirectory = 'uploaded_images'  
+        image_path = default_storage.save(os.path.join(subdirectory, uploaded_image.name), ContentFile(uploaded_image.read()))
+        num_classes = ['acer', 'alnus_incana', 'betula_pubescens', 'facus_silvatica', 'populus', 'populus_tremula', 'quercus', 'salix_aurita', 'salix_sinerea', 'sericea', 'sorbus_aucuparia', 'sorbus_intermedia', 'tilia', 'ulmus_carpinifolia', 'ulmus_glabra']
+        num_classes_pl = ['klon', 'olsza_szara', 'brzoza_omszona', 'buk_zwyczajny', 'topola', 'topola_osika', 'dab', 'wierzba_uszata', 'wierzba_siwa', 'wierzba', 'jarzab_zwyczajny', 'jarzab_srodkowy', 'lipa', 'wiaz_klosowy', 'wiaz_gladki']
+        model = models.densenet121(pretrained=False)
+        model.classifier = torch.nn.Linear(model.classifier.in_features, len(num_classes))
+        model.load_state_dict(torch.load('leaf_detection_app/models/model_leaf_detection.pth'))
+        model.eval()
 
-        # Load class names
+        image = Image.open(os.path.join(settings.MEDIA_ROOT, image_path))
+        preprocess = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+        ])
+        input_tensor = preprocess(image)
+        input_tensor = input_tensor.unsqueeze(0)
+
+        with torch.no_grad():
+            output = model(input_tensor)
+            _, predicted_idx = torch.max(output, 1)
+            predicted_class = num_classes[predicted_idx.item()]
+            predicted_class_pl = num_classes_pl[predicted_idx.item()]
+        image_np = np.array(image)
+        _, buffer = cv2.imencode('.jpg', cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
+        image_base64 = base64.b64encode(buffer).decode('utf-8')
+
+        return render(request, 'index.html', {'image_base64': image_base64, 'prediction': predicted_class,'prediction_pl': predicted_class_pl,'file_name': uploaded_image.name})
     
-
-        # Load and preprocess the image using cv2
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
-        target_size = (256, 256) 
-        image = cv2.resize(image, target_size)
-        input_arr = tf.keras.utils.img_to_array(image) / 255.0
-        input_arr = np.array([input_arr])
-        with h5py.File(model_path,'r') as fp:
-            class_names = json.loads(fp.attrs.get('class_names'))
-        # Make predictions
-        predictions = model.predict(input_arr)
-        predicted_class = class_names[np.argmax(predictions)]
-        confidence = round(100 * (np.max(tf.nn.softmax(predictions))), 2)
-
-        # Create a PIL Image from the numpy array
-        pil_image = Image.fromarray((input_arr[0] * 255).astype(np.uint8))
-
-        # Save the PIL Image to BytesIO
-        image_io = BytesIO()
-        pil_image.save(image_io, format='JPEG')
-
-        # Convert BytesIO to base64 string for HTML embedding
-        image_base64 = base64.b64encode(image_io.getvalue()).decode('utf-8')
-
-
-        # Log the base64 image for debugging
-        print("Base64 Image:", image_base64)
-
-        context = {
-            'predicted_class': predicted_class,
-            'confidence': confidence,
-            'image_base64': image_base64,
-            'uploaded_image' : uploaded_image,
-        }
-        return render(request, 'index.html', context)
-      
-      return render(request, 'index.html')
+    return render(request, 'index.html')

@@ -8,28 +8,35 @@
     <link
       rel="stylesheet"
       type="text/css"
-      href=" {% static 'index/index.css' %} "
+      href="{% static 'index/index.css' %}"
     />
     <script src="{% static 'index/index.js' %}"></script>
   </head>
   <body>
     <div id="main">
-            <h1>Witaj na stronie rozpoznawania lisci</h1>
- <form method="post" enctype="multipart/form-data">
+      <h1>Witaj na stronie rozpoznawania liści</h1>
+      <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="file" name="image" accept="image/*" required>
-        <br/>
-         <br/>
-        <button type="submit">Przeslij zdjecie</button>
-    </form>
- <p>Nazwa wysłanego pliku: {{ uploaded_image }}</p>
-    {% if predicted_class %}
-        <h3>Wynik:</h3>
-        <p>Rodzaj liścia: {{ predicted_class }}</p>
-        <p>Prawdopodobieństwo: {{ confidence }}%</p>
-    <img src="data:image/jpeg;base64,{{ image_base64 }}" alt="Processed Image">
-    {% endif %}
-</div>
-    <footer><p>Copyright Michał Lidwa, Michał Kurpa, Robert Kaleta 2023/2024</p></footer>
+        <input type="file" name="image" accept="image/*" required />
+      </br>
+       </br>
+        </br>
+        <button type="submit">Wyslij obraz</button>
+      </form>
+
+      {% if image_base64 %}
+      <h2>Wynik</h2>
+      <img src="data:image/jpeg;base64,{{ image_base64 }}" />
+      <p>Nazwa pliku zdjęcia {{file_name}}</p>
+      <p>
+        Ten wybrany liśc to: {{ prediction }} a po polsku nazwa to
+        {{prediction_pl}}
+      </p>
+      <a href="{% url 'index' %}">Sproboj od nowa</a>
+      {% endif %}
+    </div>
+    <footer>
+      <p>Copyright Michał Lidwa, Michał Kurpa, Robert Kaleta 2023/2024</p>
+    </footer>
   </body>
 </html>
