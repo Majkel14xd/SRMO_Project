@@ -21,6 +21,6 @@ everyone will be able to contribute to the protection and understanding of our n
 - Jupyter Nootebook
 - Python
 - PyTorch
-- Django 
+- Django Framework(HTML, CSS)
 
 
